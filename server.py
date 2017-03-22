@@ -69,9 +69,20 @@ def process_login_info():
 
     user_email = request.args.get("email")
     user_password = request.args.get("password")
+    
+    try:
+        email_query = User.query.filter_by(email=user_email).one()
+    except Exception, e:
+        email_query = False
 
-    email_query = User.query.filter_by(email=user_email).one()
     if email_query and email_query.password == user_password:
+        session["user_id"] = email_query.user_id
+        session["user_email"] = email_query.email
+        session["user_password"] = email_query.password
+        session["user_age"] = email_query.age
+        session["user_zipcode"] = email_query.zipcode
+        session["user_ratings"] = Rating.query.filter_by(user_id=email_query.user_id).all()
+        print session
         flash("You have successfully logged in!")
         return redirect("/")
     else:
@@ -82,14 +93,10 @@ def process_login_info():
 def process_logout_info():
     """Checks if user email and password exist on same account"""
 
-    # email_query = User.query.filter_by(email=user_email).one()
-    # if email_query and email_query.password == user_password:
-    #     flash("You have successfully logged in!")
-    #     return redirect("/")
-    # else:
-    #     flash("Email or Password is incorrect. Please try again!")
-    #     return redirect("/login")
-
+    session = {}
+    print session
+    flash("You have successfully logged out! We hope you come back soon")
+    return redirect("/")
 
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the

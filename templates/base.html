@@ -12,6 +12,12 @@
     {% endfor %}
     </ul>
   <hr>
+  <form action="/login">
+    <input type="submit" value="Login" name="login-button">
+  </form>
+  <form action="/logout-completed">
+    <input type="submit" value="Logout" name="logout-button">
+  </form>
 
   {% block content %} put your content here {% endblock %}
 
