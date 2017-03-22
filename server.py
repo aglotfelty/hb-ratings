@@ -2,10 +2,10 @@
 
 from jinja2 import StrictUndefined
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template, redirect, request, flash, session
 from flask_debugtoolbar import DebugToolbarExtension
 
-from model import connect_to_db, db
+from model import connect_to_db, db, User, Rating, Movie
 
 
 app = Flask(__name__)
@@ -22,13 +22,79 @@ app.jinja_env.undefined = StrictUndefined
 @app.route('/')
 def index():
     """Homepage."""
-    a = jsonify([1,3])
-    return a
+
+    return render_template("homepage.html")
+
+
+@app.route('/users')
+def show_users():
+    """Displays users as email and id"""
+
+    users = db.session.query(User).all()
+    return render_template("user_list.html",
+                            users=users)
+
+@app.route('/registration')
+def show_registration_form():
+    """Displays registration form"""
+
+    return render_template("registration.html")
+
+@app.route('/registration-complete', methods=['POST'])
+def check_user():
+    """Checks if user exists, if not, creates new user."""
+
+    user_email = request.form.get("email")
+    user_password = request.form.get("password")
+    user_age = request.form.get("age")
+    user_zipcode = request.form.get("zipcode")
+    email_query = User.query.filter_by(email=user_email).all()
+    if email_query:
+        print "This user already exists"
+    else:
+        user = User(email=user_email, password=user_password, age=user_age, zipcode=user_zipcode)
+        db.session.add(user)
+        db.session.commit()
+    return redirect("/")
+
+@app.route('/login')
+def show_login():
+    """Displays login form"""
+
+    return render_template("login.html")
+
+@app.route('/login-completed')
+def process_login_info():
+    """Checks if user email and password exist on same account"""
+
+    user_email = request.args.get("email")
+    user_password = request.args.get("password")
+
+    email_query = User.query.filter_by(email=user_email).one()
+    if email_query and email_query.password == user_password:
+        flash("You have successfully logged in!")
+        return redirect("/")
+    else:
+        flash("Email or Password is incorrect. Please try again!")
+        return redirect("/login")
+
+@app.route('/logout-completed')
+def process_logout_info():
+    """Checks if user email and password exist on same account"""
+
+    # email_query = User.query.filter_by(email=user_email).one()
+    # if email_query and email_query.password == user_password:
+    #     flash("You have successfully logged in!")
+    #     return redirect("/")
+    # else:
+    #     flash("Email or Password is incorrect. Please try again!")
+    #     return redirect("/login")
 
 
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
     # point that we invoke the DebugToolbarExtension
+    app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
     app.debug = True
     app.jinja_env.auto_reload = app.debug  # make sure templates, etc. are not cached in debug mode
 
