@@ -34,6 +34,15 @@ def show_users():
     return render_template("user_list.html",
                             users=users)
 
+@app.route('/users/<user_id>')
+def display_user_ratings(user_id):
+    """Displays user info and ratings."""
+
+    user = User.query.get(user_id)
+    return render_template("user_info.html",
+                           user=user)
+
+
 @app.route('/registration')
 def show_registration_form():
     """Displays registration form"""
