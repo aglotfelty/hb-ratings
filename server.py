@@ -59,6 +59,30 @@ def display_movie_info(movie_id):
     return render_template("movie_info.html",
                            movie=movie)
 
+@app.route('/rating-processed', methods=['POST'])
+def process_user_rating():
+    """If rating exists, update. If not, then add it to database"""
+
+    user_rating = request.form.get("rating")
+    movie_id = request.form.get("movie-id")
+    user_id = session['user_id']
+
+    try:
+        movie_rating = Rating.query.filter_by(user_id=user_id, movie_id=movie_id).one()
+    except Exception, e:
+        rating = Rating(user_id=user_id,
+                        movie_id=movie_id,
+                        score=user_rating)
+        db.session.add(rating)
+        db.session.commit()
+        flash("Your rating has been added!")
+        return redirect('/movies/%s' % movie_id)
+
+    movie_rating.score = user_rating
+    db.session.commit()
+    flash("Your rating has been updated!")
+    return redirect('/movies/%s' % movie_id)
+        
 
 @app.route('/registration')
 def show_registration_form():
