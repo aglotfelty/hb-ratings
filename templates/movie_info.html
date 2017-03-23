@@ -3,6 +3,12 @@
 
 <h1>{{ movie.title }} Info</h1>
 
+Rate this movie on a scale of 1 to 5:
+<form action='/rating-processed' method="POST">
+  <input type="number" name="rating" placeholder="1-5" min="1" max="5">
+  <input type="submit">
+</form>
+
 {% if movie.ratings %}
 
 <div>

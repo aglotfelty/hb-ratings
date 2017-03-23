@@ -47,7 +47,7 @@ def display_user_ratings(user_id):
 def show_movies():
     """Displays movies"""
 
-    movies = db.session.query(Movie).all()
+    movies = db.session.query(Movie).order_by(Movie.title).all()
     return render_template("movies_list.html",
                             movies=movies)
 

@@ -2,15 +2,15 @@
 {% block content %}
 
 <h1>Movie List</h1>
-
   <ul>
     {% for movie in movies %}
-      <li>
-        <a href="/movies/{{movie.movie_id}}"> 
-          {{ movie.title }}
-        </a>
-      </li>
+        {% if movie.title %}
+          <li>
+            <a href="/movies/{{movie.movie_id}}"> 
+              {{ movie.title }}
+            </a>
+          </li>
+        {% endif %}
     {% endfor %}
   </ul>
-
 {% endblock %}
