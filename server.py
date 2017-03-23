@@ -43,6 +43,23 @@ def display_user_ratings(user_id):
                            user=user)
 
 
+@app.route('/movies')
+def show_movies():
+    """Displays movies"""
+
+    movies = db.session.query(Movie).all()
+    return render_template("movies_list.html",
+                            movies=movies)
+
+# @app.route('/movies/<movie_id>')
+# def display_user_ratings(movie_id):
+#     """Displays movie info"""
+
+#     movie = Movie.query.get(movie_id)
+#     return render_template("movie_info.html",
+#                            movie=movie)
+
+
 @app.route('/registration')
 def show_registration_form():
     """Displays registration form"""
