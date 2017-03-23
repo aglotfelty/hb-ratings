@@ -51,13 +51,13 @@ def show_movies():
     return render_template("movies_list.html",
                             movies=movies)
 
-# @app.route('/movies/<movie_id>')
-# def display_user_ratings(movie_id):
-#     """Displays movie info"""
+@app.route('/movies/<movie_id>')
+def display_movie_info(movie_id):
+    """Displays movie info"""
 
-#     movie = Movie.query.get(movie_id)
-#     return render_template("movie_info.html",
-#                            movie=movie)
+    movie = Movie.query.get(movie_id)
+    return render_template("movie_info.html",
+                           movie=movie)
 
 
 @app.route('/registration')
