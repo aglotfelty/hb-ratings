@@ -67,21 +67,25 @@ def process_user_rating():
     movie_id = request.form.get("movie-id")
     user_id = session['user_id']
 
-    try:
-        movie_rating = Rating.query.filter_by(user_id=user_id, movie_id=movie_id).one()
-    except Exception, e:
-        rating = Rating(user_id=user_id,
-                        movie_id=movie_id,
-                        score=user_rating)
-        db.session.add(rating)
-        db.session.commit()
-        flash("Your rating has been added!")
-        return redirect('/movies/%s' % movie_id)
+    if user_rating:
+        try:
+            movie_rating = Rating.query.filter_by(user_id=user_id, movie_id=movie_id).one()
+        except Exception, e:
+            rating = Rating(user_id=user_id,
+                            movie_id=movie_id,
+                            score=user_rating)
+            db.session.add(rating)
+            db.session.commit()
+            flash("Your rating has been added!")
+            return redirect('/movies/%s' % movie_id)
 
-    movie_rating.score = user_rating
-    db.session.commit()
-    flash("Your rating has been updated!")
-    return redirect('/movies/%s' % movie_id)
+        movie_rating.score = user_rating
+        db.session.commit()
+        flash("Your rating has been updated!")
+        return redirect('/movies/%s' % movie_id)
+    else:
+        flash("Please enter a number for your rating before clicking submit.")
+        return redirect('/movies/%s' % movie_id)
         
 
 @app.route('/registration')
@@ -128,10 +132,8 @@ def process_login_info():
     if email_query and email_query.password == user_password:
         session["user_id"] = email_query.user_id
         session["user_email"] = email_query.email
-        session["user_password"] = email_query.password
         session["user_age"] = email_query.age
         session["user_zipcode"] = email_query.zipcode
-        session["user_ratings"] = Rating.query.filter_by(user_id=email_query.user_id).all()
         print session
         flash("You have successfully logged in!")
         return redirect("/")
