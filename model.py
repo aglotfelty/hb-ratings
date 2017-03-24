@@ -73,6 +73,8 @@ class User(db.Model):
 
         return numerator/denominator
 
+        
+
 # Put your Movie and Rating model classes here.
 
 class Movie(db.Model):

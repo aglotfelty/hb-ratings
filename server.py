@@ -56,8 +56,93 @@ def display_movie_info(movie_id):
     """Displays movie info"""
 
     movie = Movie.query.get(movie_id)
-    return render_template("movie_info.html",
-                           movie=movie)
+    user_id = session.get("user_id")
+
+    if user_id:
+        user_rating = Rating.query.filter_by(
+            movie_id=movie_id, user_id=user_id).first()
+
+    else:
+        user_rating = None
+
+    # Get average rating of movie
+
+    rating_scores = [r.score for r in movie.ratings]
+    avg_rating = float(sum(rating_scores)) / len(rating_scores)
+
+    prediction = None
+
+    # Prediction code: only predict if the user hasn't rated it.
+
+    if (not user_rating) and user_id:
+        user = User.query.get(user_id)
+        if user:
+            prediction = user.predict_rating(movie)
+
+    # Either use the prediction or their real rating
+
+    if prediction:
+        # User hasn't scored; use our prediction if we made one
+        effective_rating = prediction
+
+    elif user_rating:
+        # User has already scored for real; use that
+        effective_rating = user_rating.score
+
+    else:
+        # User hasn't scored, and we couldn't get a prediction
+        effective_rating = None
+
+    # Get the eye's rating, either by predicting or using real rating
+
+    the_eye = (User.query.filter_by(email="the_eye@gmail.com")
+                         .one())
+    eye_rating = Rating.query.filter_by(
+        user_id=the_eye.user_id, movie_id=movie.movie_id).first()
+
+    if eye_rating is None:
+        eye_rating = the_eye.predict_rating(movie)
+
+    else:
+        eye_rating = eye_rating.score
+
+    if eye_rating and effective_rating:
+        difference = abs(eye_rating - effective_rating)*1.25
+
+    else:
+        # We couldn't get an eye rating, so we'll skip difference
+        difference = None
+
+    # Depending on how different we are from the Eye, choose a
+    # message
+
+    BERATEMENT_MESSAGES = [
+        "I suppose you don't have such bad taste after all.",
+        "I regret every decision that I've ever made that has " +
+            "brought me to listen to your opinion.",
+        "Words fail me, as your taste in movies has clearly " +
+            "failed you.",
+        "That movie is great. For a clown to watch. Idiot.",
+        "Words cannot express the awfulness of your taste."
+    ]
+
+    if difference is not None:
+        beratement = BERATEMENT_MESSAGES[int(difference)]
+
+    else:
+        beratement = None
+
+    return render_template(
+        "movie_info.html",
+        movie=movie,
+        user_rating=user_rating,
+        average=avg_rating,
+        prediction=prediction,
+        beratement=beratement,
+        eye_rating=eye_rating
+        )
+
+
 
 @app.route('/rating-processed', methods=['POST'])
 def process_user_rating():
@@ -77,12 +162,12 @@ def process_user_rating():
             db.session.add(rating)
             db.session.commit()
             flash("Your rating has been added!")
-            return redirect('/movies/%s' % movie_id)
+            return redirect('/movies')
 
         movie_rating.score = user_rating
         db.session.commit()
         flash("Your rating has been updated!")
-        return redirect('/movies/%s' % movie_id)
+        return redirect('/movies')
     else:
         flash("Please enter a number for your rating before clicking submit.")
         return redirect('/movies/%s' % movie_id)
